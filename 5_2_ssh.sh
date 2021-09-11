@@ -70,3 +70,22 @@ echo "$green 5.2.4 Ensure SSH Protocol is not set to 1 (Scored)"
 if sshd -T | grep -Ei '^\s*protocol\s+(1|1\s*,\s*2|2\s*,\s*1)\s*'; then
     echo "Protocol 2">>/etc/ssh/sshd_config
 fi
+
+
+hardening  'sed -i   "s/^\s*loglevel/\#LogLevel/gI" /etc/ssh/sshd_config;echo "LogLevel VERBOSE">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i loglevel' 'VERBOSE' '5.2.5 Ensure SSH LogLevel is appropriate (Scored)'
+
+hardening  'sed -i   "s/^\s*X11Forwarding/\#X11Forwarding/gI" /etc/ssh/sshd_config;echo "X11Forwarding no">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i X11Forwarding' 'no' '5.2.7 Ensure SSH MaxAuthTries is set to 4 or less (Scored)'
+
+hardening  'sed -i   "s/^\s*MaxAuthTries/\#MaxAuthTries/gI" /etc/ssh/sshd_config;echo "MaxAuthTries 4">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i MaxAuthTries' '4' '5.2.7 Ensure SSH MaxAuthTries is set to 4 or less (Scored)'
+
+hardening  'sed -i   "s/^\s*IgnoreRhosts/\#IgnoreRhosts/gI" /etc/ssh/sshd_config;echo "IgnoreRhosts yes">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i IgnoreRhosts' 'yes' '5.2.8 Ensure SSH IgnoreRhosts is enabled (Scored)'
+
+hardening  'sed -i   "s/^\s*HostbasedAuthentication/\#HostbasedAuthentication/gI" /etc/ssh/sshd_config;echo "HostbasedAuthentication no">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i HostbasedAuthentication' 'no' '5.2.9 Ensure SSH HostbasedAuthentication is disabled (Scored)'
+
+hardening  'sed -i   "s/^\s*PermitRootLogin/\#PermitRootLogin/gI" /etc/ssh/sshd_config;echo "PermitRootLogin no">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i PermitRootLogin' 'no' '5.2.10 Ensure SSH PermitRootLogin is disabled (Scored)'
+
+hardening  'sed -i   "s/^\s*PermitEmptyPasswords/\#PermitEmptyPasswords/gI" /etc/ssh/sshd_config;echo "PermitEmptyPasswords no">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i PermitEmptyPasswords' 'no' '5.2.11 Ensure SSH PermitEmptyPasswords is disabled (Scored)'
+
+hardening  'sed -i   "s/^\s*PermitUserEnvironment/\#PermitUserEnvironment/gI" /etc/ssh/sshd_config;echo "PermitUserEnvironment no">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i PermitUserEnvironment' 'no' '5.2.12 Ensure SSH PermitUserEnvironment is disabled (Scored)'
+
+hardening  'sed -i   "s/^\s*Ciphers\ /\#Ciphers\ /gI" /etc/ssh/sshd_config;echo "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep ciphers' '"chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"' '5.2.13 Ensure only strong Ciphers are used (Scored)'
