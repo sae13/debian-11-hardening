@@ -88,4 +88,19 @@ hardening  'sed -i   "s/^\s*PermitEmptyPasswords/\#PermitEmptyPasswords/gI" /etc
 
 hardening  'sed -i   "s/^\s*PermitUserEnvironment/\#PermitUserEnvironment/gI" /etc/ssh/sshd_config;echo "PermitUserEnvironment no">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i PermitUserEnvironment' 'no' '5.2.12 Ensure SSH PermitUserEnvironment is disabled (Scored)'
 
-hardening  'sed -i   "s/^\s*Ciphers\ /\#Ciphers\ /gI" /etc/ssh/sshd_config;echo "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep ciphers' '"chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"' '5.2.13 Ensure only strong Ciphers are used (Scored)'
+hardening  'sed -i   "s/^\s*Ciphers\ /\#Ciphers\ /gI" /etc/ssh/sshd_config;echo "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i ciphers' '"chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"' '5.2.13 Ensure only strong Ciphers are used (Scored)'
+
+hardening  'sed -i   "s/^\s*MACs\ /\#MACs\ /gI" /etc/ssh/sshd_config;echo "MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i MACs' '"hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256"' '5.2.14 Ensure only strong MAC algorithms are used (Scored)'
+
+hardening  'sed -i   "s/^\s*KexAlgorithms\ /\#KexAlgorithms\ /gI" /etc/ssh/sshd_config;echo "KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group14-sha256,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i KexAlgorithms' '"curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group14-sha256,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256"' '5.2.15 Ensure only strong Key Exchange algorithms are used (Scored)'
+
+
+
+hardening  'sed -i   "s/^\s*ClientAliveInterval/\#ClientAliveInterval/gI" /etc/ssh/sshd_config;echo "ClientAliveInterval 300">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i ClientAliveInterval' '300' '5.2.16 Ensure SSH Idle Timeout Interval is configured (Scored)'
+
+
+hardening  'sed -i   "s/^\s*ClientAliveCountMax/\#ClientAliveCountMax/gI" /etc/ssh/sshd_config;echo "ClientAliveCountMax 300">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i ClientAliveCountMax' '"ClientAliveCountMax 300"' '5.2.16 Ensure SSH Idle Timeout Interval is configured (Scored)'
+
+hardening  'sed -i   "s/^\s*LoginGraceTime/\#LoginGraceTime/gI" /etc/ssh/sshd_config;echo "LoginGraceTime 60">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i LoginGraceTime' '"LoginGraceTime 60"' '5.2.17 Ensure SSH LoginGraceTime is set to one minute or less (Scored)'
+
+hardening  'sed -i   "s/^\s*LoginGraceTime/\#LoginGraceTime/gI" /etc/ssh/sshd_config;echo "LoginGraceTime 60">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i LoginGraceTime' '"LoginGraceTime 60"' '5.2.16 Ensure SSH Idle Timeout Interval is configured (Scored)'
