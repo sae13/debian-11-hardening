@@ -42,6 +42,7 @@ hardening() {
 
 clear
 
-hardening 'systemctl --now enable cron' 'systemctl is-enabled cron' 'enabled' '5.1.1 Ensure cron daemon is enabled (Scored)'
-hardening 'chown root:root /etc/crontab' 'stat /etc/crontab' 'Uid: (0/root)Gid: (0/root)' '5.1.2 Ensure permissions on /etc/crontab are configured (Scored)'
-hardening 'chmod og-rwx /etc/crontab' 'stat /etc/crontab' 'Access: (0600/-rw-------)' '5.1.2 Ensure permissions on /etc/crontab are configured (Scored)'
+hardening 'systemctl --now enable cron' 'systemctl is-enabled cron' '"enabled"' '5.1.1 Ensure cron daemon is enabled (Scored)'
+
+hardening 'chown root:root /etc/crontab' 'stat /etc/crontab|grep "Access: ("' '".*root.*root"' '5.1.2 Ensure permissions on /etc/crontab are configured (Scored)'
+hardening 'chmod og-rwx /etc/crontab' 'stat /etc/crontab|grep "Access: ("' '"0600"' '5.1.2 Ensure permissions on /etc/crontab are configured (Scored)'
