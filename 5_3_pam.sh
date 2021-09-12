@@ -54,7 +54,8 @@ cp /etc/security/pwquality.conf $HOME/$pwquality
 
 pam_d=$(date +pam_d%s)
 cp -r /etc/pam.d/ $HOME/$pam_d
-
+echo "$red THESE ARE NOT WIRKING DO THESE WITH YOUR OWN RISK $white"
+exit 1
 hardening 'sed -i   "s/^\s*minclass/\#minclass/gI" /etc/security/pwquality.conf;echo "minclass = 4">>/etc/security/pwquality.conf' "grep '^\s*minclass\s*' /etc/security/pwquality.conf" '"4"' '"5.3.1 Ensure password creation requirements are configured (Scored)"'
 
 hardening 'sed -i   "s/^\s*minlen/\#minlen/gI" /etc/security/pwquality.conf;echo "minlen = 14">>/etc/security/pwquality.conf' "grep '^\s*minlen\s*' /etc/security/pwquality.conf" '"14"' '"5.3.1 Ensure password creation requirements are configured (Scored)"'
