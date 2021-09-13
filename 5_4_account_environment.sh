@@ -41,75 +41,60 @@ hardening() {
 }
 
 clear
-back_up=$(date +sshd_bakup_%s)
-cp /etc/ssh/sshd_config $HOME/$back_up
+login_defs=$(date +login_defs_%s)
+cp /etc/login.defs $HOME/$login_defs
 
-hardening 'chown root:root /etc/ssh/sshd_config' 'stat /etc/ssh/sshd_config|grep "Access: ("' '".*root.*root"' '5.2.1 Ensure permissions on /etc/ssh/sshd_config are configured (Scored)'
-hardening 'chmod 0600 /etc/ssh/sshd_config' 'stat /etc/ssh/sshd_config|grep "Access: ("' '"0600"' '5.2.1 Ensure permissions on /etc/ssh/sshd_config are configured (Scored)'
+hardening 'sed -i   "s/^\s*PASS_MAX_DAYS/\#PASS_MAX_DAYS/gI" /etc/login.defs;echo "PASS_MAX_DAYS 365">>/etc/login.defs;' 'grep -i -E "^\s*PASS_MAX_DAYS" /etc/login.defs' '"365"' '5.4.1.1 Ensure password expiration is 365 days or less (Scored)'
 
-echo "$green 5.2.2 Ensure permissions on SSH private host key files are configure (Scored)"
-echo "$red ##TODO May Need Check Manually $white"
-echo "$orange find /etc/ssh -xdev -type f -name 'ssh_host_*_key' -exec chown root:root {}\; $white"
-find /etc/ssh -xdev -type f -name 'ssh_host_*_key' -exec chown root:root {} \;
-echo "$orange find /etc/ssh -xdev -type f -name 'ssh_host_*_key' -exec chmod 0600 {} \; $white"
-find /etc/ssh -xdev -type f -name 'ssh_host_*_key' -exec chmod 0600 {} \;
+grep -E '^[^:]+:[^!*]' /etc/shadow | cut -d: -f1,5
+echo "$red chage --maxdays 365 <user> $white"
 
-echo "$green 5.2.3 Ensure permissions on SSH public host key files are configured (Scored)"
-echo "$red ##TODO May Need Check Manually $white"
-echo "$orange find /etc/ssh -xdev -type f -name 'ssh_host_*_key.pub' -exec chmod go-wx {} \; $white"
-find /etc/ssh -xdev -type f -name 'ssh_host_*_key.pub' -exec chmod go-wx {} \;
-echo "$orange find /etc/ssh -xdev -type f -name 'ssh_host_*_key.pub' -exec chown root:root {} \; $white"
-find /etc/ssh -xdev -type f -name 'ssh_host_*_key.pub' -exec chown root:root {} \;
+hardening 'sed -i   "s/^\s*PASS_MIN_DAYS/\#PASS_MIN_DAYS/gI" /etc/login.defs;echo "PASS_MIN_DAYS 1">>/etc/login.defs;' 'grep -i -E "^\s*PASS_MIN_DAYS" /etc/login.defs' '"\s*1\s*"' '5.4.1.2 Ensure minimum days between password changes is configured(Scored)'
 
-echo "$green 5.2.4 Ensure SSH Protocol is not set to 1 (Scored)"
-if sshd -T | grep -Ei '^\s*protocol\s+(1|1\s*,\s*2|2\s*,\s*1)\s*'; then
-    echo "Protocol 2" >>/etc/ssh/sshd_config
-fi
 
-hardening 'sed -i   "s/^\s*loglevel/\#LogLevel/gI" /etc/ssh/sshd_config;echo "LogLevel VERBOSE">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i loglevel' 'VERBOSE' '5.2.5 Ensure SSH LogLevel is appropriate (Scored)'
+grep -E ^[^:]+:[^\!*] /etc/shadow | cut -d: -f1,4
+echo "$red chage --mindays 1 <user>  $white"
+hardening 'sed -i   "s/^\s*PASS_WARN_AGE/\#PASS_WARN_AGE/gI" /etc/login.defs;echo "PASS_WARN_AGE 7">>/etc/login.defs;' 'grep -i -E "^\s*PASS_WARN_AGE" /etc/login.defs' '"\s*7\s*"' '5.4.1.3 Ensure password expiration warning days is 7 or more (Scored)'
 
-hardening 'sed -i   "s/^\s*X11Forwarding/\#X11Forwarding/gI" /etc/ssh/sshd_config;echo "X11Forwarding no">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i X11Forwarding' 'no' '5.2.7 Ensure SSH MaxAuthTries is set to 4 or less (Scored)'
 
-hardening 'sed -i   "s/^\s*MaxAuthTries/\#MaxAuthTries/gI" /etc/ssh/sshd_config;echo "MaxAuthTries 4">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i MaxAuthTries' '4' '5.2.7 Ensure SSH MaxAuthTries is set to 4 or less (Scored)'
+grep -E ^[^:]+:[^\!*] /etc/shadow | cut -d: -f1,6
+echo "$red chage --warndays 7 <user>  $white"
 
-hardening 'sed -i   "s/^\s*IgnoreRhosts/\#IgnoreRhosts/gI" /etc/ssh/sshd_config;echo "IgnoreRhosts yes">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i IgnoreRhosts' 'yes' '5.2.8 Ensure SSH IgnoreRhosts is enabled (Scored)'
 
-hardening 'sed -i   "s/^\s*HostbasedAuthentication/\#HostbasedAuthentication/gI" /etc/ssh/sshd_config;echo "HostbasedAuthentication no">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i HostbasedAuthentication' 'no' '5.2.9 Ensure SSH HostbasedAuthentication is disabled (Scored)'
+hardening 'useradd -D -f 30' 'useradd -D | grep "INACTIVE"' '"[\s=]*30\s*"' '5.4.1.3 Ensure password expiration warning days is 7 or more (Scored)'
+grep -E ^[^:]+:[^\!*] /etc/shadow | cut -d: -f1,7
+echo "$red chage --inactive 30 <user>  $white"
 
-hardening 'sed -i   "s/^\s*PermitRootLogin/\#PermitRootLogin/gI" /etc/ssh/sshd_config;echo "PermitRootLogin no">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i PermitRootLogin' 'no' '5.2.10 Ensure SSH PermitRootLogin is disabled (Scored)'
+echo "$green 5.4.1.5 Ensure all users last password change date is in the past (Scored) $white"
+echo "$red Ensure all users last password change date is in the past  $white"
+for usr in $(cut -d: -f1 /etc/shadow); do [[ $(chage --list $usr | grep '^Last password change' | cut -d: -f2) > $(date) ]] && echo "$usr :$(chage --list $usr | grep '^Last password change' | cut -d: -f2)"; done
 
-hardening 'sed -i   "s/^\s*PermitEmptyPasswords/\#PermitEmptyPasswords/gI" /etc/ssh/sshd_config;echo "PermitEmptyPasswords no">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i PermitEmptyPasswords' 'no' '5.2.11 Ensure SSH PermitEmptyPasswords is disabled (Scored)'
 
-hardening 'sed -i   "s/^\s*PermitUserEnvironment/\#PermitUserEnvironment/gI" /etc/ssh/sshd_config;echo "PermitUserEnvironment no">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i PermitUserEnvironment' 'no' '5.2.12 Ensure SSH PermitUserEnvironment is disabled (Scored)'
 
-hardening 'sed -i   "s/^\s*Ciphers\ /\#Ciphers\ /gI" /etc/ssh/sshd_config;echo "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i ciphers' '"chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"' '5.2.13 Ensure only strong Ciphers are used (Scored)'
+echo "$green 5.4.2 Ensure system accounts are secured (Scored) $white"
+echo "$red ###TODO run this manually  $white"
+echo "$red erify no results are returned  $white"
 
-hardening 'sed -i   "s/^\s*MACs\ /\#MACs\ /gI" /etc/ssh/sshd_config;echo "MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i MACs' '"hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256"' '5.2.14 Ensure only strong MAC algorithms are used (Scored)'
+awk -F: '($1!="root" && $1!="sync" && $1!="shutdown" && $1!="halt" && $1!~/^\+/ && $3<'"$(awk '/^\s*UID_MIN/{print $2}' /etc/login.defs)"' && $7!="'"$(which nologin)"'" && $7!="/bin/false") {print}' /etc/passwd
 
-hardening 'sed -i   "s/^\s*KexAlgorithms\ /\#KexAlgorithms\ /gI" /etc/ssh/sshd_config;echo "KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group14-sha256,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i KexAlgorithms' '"curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group14-sha256,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256"' '5.2.15 Ensure only strong Key Exchange algorithms are used (Scored)'
+echo "$red erify no results are returned  $white"
+awk -F: '($1!="root" && $1!~/^\+/ && $3<'"$(awk '/^\s*UID_MIN/{print $2}' /etc/login.defs)"') {print $1}' /etc/passwd | xargs -I '{}' passwd -S '{}' | awk '($2!="L" && $2!="LK") {print $1}'
 
-hardening 'sed -i   "s/^\s*ClientAliveInterval/\#ClientAliveInterval/gI" /etc/ssh/sshd_config;echo "ClientAliveInterval 300">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i ClientAliveInterval' '300' '5.2.16 Ensure SSH Idle Timeout Interval is configured (Scored)'
+echo "$red Run the commands appropriate for your distribution:  $white"
+echo "$red eSet the shell for any accounts returned by the audit to nologin: $white"
+echo "usermod -L <user>"
 
-hardening 'sed -i   "s/^\s*ClientAliveCountMax/\#ClientAliveCountMax/gI" /etc/ssh/sshd_config;echo "ClientAliveCountMax 300">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i ClientAliveCountMax' '"ClientAliveCountMax 300"' '5.2.16 Ensure SSH Idle Timeout Interval is configured (Scored)'
+hardening 'usermod -g 0 root' 'grep "^root:" /etc/passwd | cut -f4 -d:' '"^0$"' '5.4.3 Ensure default group for the root account is GID 0 (Scored)'
 
-hardening 'sed -i   "s/^\s*LoginGraceTime/\#LoginGraceTime/gI" /etc/ssh/sshd_config;echo "LoginGraceTime 60">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i LoginGraceTime' '"LoginGraceTime 60"' '5.2.17 Ensure SSH LoginGraceTime is set to one minute or less (Scored)'
+hardening 'sed -i   "s/^\s*umask/\#umask/gI" /etc/bash.bashrc ;echo "umask 027"  >> /etc/bash.bashrc  ' 'grep "umask" /etc/bash.bashrc' '"027"' '5.4.4 Ensure default user umask is 027 or more restrictive (Scored)'
+hardening 'sed -i   "s/^\s*umask/\#umask/gI" /etc/profile;echo "umask 027"  >>  /etc/profile ' 'grep "umask" /etc/profile' '"027"' '5.4.4 Ensure default user umask is 027 or more restrictive (Scored)'
 
-hardening 'sed -i   "s/^\s*LoginGraceTime/\#LoginGraceTime/gI" /etc/ssh/sshd_config;echo "LoginGraceTime 60">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i LoginGraceTime' '"LoginGraceTime 60"' '5.2.16 Ensure SSH Idle Timeout Interval is configured (Scored)'
+hardening 'sed -i   "s/^\s*readonly\ TMOUT/\#readonly\ TMOUT/gI" /etc/bash.bashrc ;echo "readonly TMOUT=900 ; export TMOUT"  >> /etc/bash.bashrc  ' 'grep "TMOUT" /etc/bash.bashrc' '"readonly TMOUT=900 ; export TMOUT"' '5.4.5 Ensure default user shell timeout is 900 seconds or less (Scored)'
+hardening 'sed -i   "s/^\s*readonly\ TMOUT/\#readonly\ TMOUT/gI" /etc/profile;echo "readonly TMOUT=900 ; export TMOUT"  >>  /etc/profile ' 'grep "TMOUT" /etc/profile' '"readonly TMOUT=900 ; export TMOUT"' '5.4.5 Ensure default user shell timeout is 900 seconds or less(Scored)'
 
-echo "$green 5.2.18 Ensure SSH access is limited (Scored)"
-echo "$red ##TODO May Need Check Manually $white"
-echo "Edit the /etc/ssh/sshd_config file to set one or more of the parameter as follows:\
-AllowUsers <userlist>\
-AllowGroups <grouplist>\
-DenyUsers <userlist>\
-DenyGroups <grouplist>"
 
-hardening 'sed -i   "s/^\s*Banner/\#Banner/gI" /etc/ssh/sshd_config;echo "Banner /etc/issue.net">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i Banner' '"Banner /etc/issue.net"' '5.2.19 Ensure SSH warning banner is configured (Scored)'
-
-hardening 'sed -i   "s/^\s*UsePAM/\#UsePAM/gI" /etc/ssh/sshd_config;echo "UsePAM yes">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i UsePAM' '"UsePAM yes"' '5.2.20 Ensure SSH PAM is enabled (Scored)'
-
-hardening 'sed -i   "s/^\s*AllowTcpForwarding/\#AllowTcpForwarding/gI" /etc/ssh/sshd_config;echo "AllowTcpForwarding no">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i AllowTcpForwarding' '"AllowTcpForwarding no"' '5.2.21 Ensure SSH AllowTcpForwarding is disabled (Scored)'
-
-hardening 'sed -i   "s/^\s*maxstartups/\#maxstartups/gI" /etc/ssh/sshd_config;echo "maxstartups 10:30:60">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i maxstartups' '"maxstartups 10:30:60"' '5.2.22 Ensure SSH MaxStartups is configured (Scored)'
-
-hardening 'sed -i   "s/^\s*MaxSessions/\#MaxSessions/gI" /etc/ssh/sshd_config;echo "MaxSessions 10">>/etc/ssh/sshd_config;systemctl restart sshd;sleep 5;' 'sshd -T | grep -i MaxSessions' '"MaxSessions 10"' '5.2.23 Ensure SSH MaxSessions is limited (Scored)'
+echo "$red 5.5 Ensure root login is restricted to system console (Not Scored)  $white"
+echo "$red The file /etc/securetty contains a list of valid terminals that may be logged in directly as root. $white"
+echo "cat /etc/securetty"
+cat /etc/securetty
+echo "$red Remove entries for any consoles that are not in a physically secure location. $white"
